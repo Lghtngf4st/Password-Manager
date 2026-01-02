@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register 
+{% endblock %}
+
+{% block main %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5 text-start">
+            <h1 class="h3 mb-3">
+                Create an account
+            </h1>
+            <p class="text-muted mb-4">
+                Create a master account to access your encrypted vault. 
+            </p>
+
+            <form action="/register" method="post" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input class="form-control" id="username" name="username" type="text" placeholder="e.g., John Doe" autocomplete="username" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Master password</label>
+                    <input class="form-control" id="password" name="password" type="password" placeholder="Create a strong master password" autocomplete="new-password" required>
+
+                    <div class="form-text">
+                        Use a long password you can remember. You'll need it to decrypt your vault.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Strength</small>
+                        <small id="strengthLabel" class="text-muted">-</small>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div id="strengthBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"></div>
+                    </div>
+                    <ul id="strengthFeedback" class="small text-muted mt-2 mb-0"></ul>
+                </div>
+
+                <div class="mb-4">
+                    <label for="confirmation" class="form-label">Confirm master password</label>
+                    <input class="form-control" id="confirmation" name="confirmation" type="password" placeholder="Re-enter your master password" autocomplete="new-password" required>
+                </div>
+
+                <button class="btn btn-primary w-100" type="submit">Register</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">Already have an account?</span>
+                <a href="/login">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const pwInput = document.getElementById("password");
+            const labelEl = document.getElementById("strengthLabel");
+            const barEl = document.getElementById("strengthBar");
+            const feedbackEl = document.getElementById("strengthFeedback")
+
+            let lastValue = "";
+            let timer = null
+
+            function clearFeedBack () {
+                feedbackEl.innterHTML = "";
+            }
+
+            function renderFeedback(items) {
+                clearFeedback();
+                if (!items || items.length === 0) 
+                    return;
+                for (const msg of items)  {
+                    const li = document.createElement("li");
+                    li.textContent = msg;
+                    feedbackEl.appendChild(li);
+                }
+            }
+
+            async function updateStrength(pw) {
+                if (!pw) {
+                    labelEl.textContent = "-";
+                    barEl.style.width = "0%";
+                    barEl.setAttribute("aria-valuenow", "0");
+                    barEl.className = "progress-bar";
+                    clearFeedback();
+                    return;
+                }
+                
+                const form = new FormData();
+                form.append("password", pw);
+
+                const res = await fetch("/password_strength", {
+                    method: "POST",
+                    body: form
+                });
+
+                const data = await res.json();
+
+                const score = Number(data.score ?? 0);
+                const pct = Math.max(0, Math.min(4, score)) * 25;
+
+                labelEl.textContent = data.label ?? "-";
+                barEl.style.width = pct + "%";
+                barEl.setAttribute("aria-valuenow", String(score));
+
+                let cls = "progress-bar";
+                if (score <= 1) cls += "bg-danger";
+                else if (score === 2) cls += "bg-warning";
+                else if (score === 3) cls += "bg-info";
+                else cls += "bg-success";
+                barEl.className = cls;
+
+                renderFeedback(data.feedback);
+            }
+
+            pwInput.addEventListener("input", () => {
+                const value = pwInput.value;
+
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    if (value !== lastValue) {
+                        lastValue = value;
+                        updateStrength(value).catch(() => {
+                            labelEl.textContent = "-";
+                            barEl.style.width = "0%";
+                            clearFeedback();
+                        });
+                    }
+                }, 150);
+            });
+        })();
+    </script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Vault 
+{% endblock %}
+
+{% block main %}
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-bettween gap-3 mb-4">
+        <div class="text-start">
+            <h1 class="h3 mb-1">Your Vault</h1>
+            <div class="form-text">
+                Search by website name or URL, then click a result to view details
+            </div>
+        </div>
+    </div>
+
+    <form class="row g-2 mb-4" method="GET" action="/vault">
+        <div class="col-12 col-md-9">
+            <input class="form-control form-control-lg" type="text" name="q" value="{{ q or '' }}" placeholder="Search (e.g. Amazon, Spotify, Gmail)" autocomplete="off">
+        </div>
+        <div class="col-12 col-md-3 d-grid">
+            <button class="btn btn-dark btn-lg" type="submit">Search</button>
+        </div>
+    </form>
+
+    {% if items and items|length > 0 %}
+        <div class="list-group text-start">
+            {% for item in items %}
+            <a href="/vault/{{ item.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div class="me-3">
+                    <div class="fw-semibold">{{ item.label }}</div>
+                    {% if item.url %}
+                        <div class="form-text small">{{ item.url }}</div>
+                    {% else %}
+                        <div class="form-text small">No URL saved</div>
+                    {% endif %}
+                </div>
+                <span class="form-text">View</span>
+            </a>
+            {% endfor %} 
+        </div>
+    {% else %}
+        <div class="border rounded p-4 text-center text-muted">
+            {% if q %}
+                No results found for <span class="fw-semibold">{{ q }}</span>
+            {% else %}
+                Your vault is empty. Add your first password entry.
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}  
+    

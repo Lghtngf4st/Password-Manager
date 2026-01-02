@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ item.label }}
+{% endblock %}
+
+{% block main %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8 text-start">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                <div>
+                    <h1 class="h3 mb-1">{{ item.label }}</h1>
+                    {% if item.url %}
+                        <div class="text-muted">
+                            <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">
+                            No URL saved
+                        </div>
+                    {% endif %}
+                </div>
+                <a class="btn btn-outline-secondary" href="/vault">Back to Vault</a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username / Email</label>
+                        <div class="input-group">
+                            <input class="form-control" id="usernameField" type="text" value="{{ username or '' }}" readonly>
+                            <button class="btn btn-outline-dark" type="button" id="copyUsernameBtn">Copy</button>
+                        </div>
+                    </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <input class="form-control" id="passwordField" type="password" value="{{ password or '' }}" readonly>
+                        <button class="btn btn-outline-dark" type="button" id="togglePwBtn">Show</button>
+                        <button class="btn btn-outline-dark" type="button" id="copyPasswordBtn">Copy</button>
+                    </div>
+                    <div class="form-text">
+                        Use "Show" only when necessary. Copying is safer in shared spaces.
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" id="notesField" rows="4" readonly>{{ notes or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <a class="btn btn-outline-primary" href="/vault/{{ item.id }}/edit">Edit</a>
+
+                <form action="/vault/{{ item.id }}/delete" method="post" onsubmit="return confirm('Delete this item? This cannot be undone.');">
+                    <button class="btn btn-outline-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const usernameField = document.getElementById("usernameField");
+            const passwordField = document.getElementById("passwordField");
+
+            const copyUsernameBtn = document.getElementById("copyUsernameBtn");
+            const copyPasswordBtn = document.getElementById("copyPasswordBtn");
+            const togglePwBtn = document.getElementById("togglePwBtn");
+
+            async function copyToClipboard(text) {
+                if (!text) return;
+                try {
+                    await navigator.clipboard.writeText(text);
+                } catch (e) {
+                    const tmp = document.createElement("textarea");
+                    tmp.value = text;
+                    document.body.appendChild(tmp);
+                    tmp.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(tmp);
+                }
+            }
+
+            copyUsernameBtn.addEventListener("click", async () => {
+                await copyToClipboard(usernameField.value);
+                copyUsernameBtn.textContent = "Copied";
+                setTimeout(() => (copyUsernameBtn.textContent = "Copy"), 900);
+            });
+
+            copyPasswordBtn.addEventListener("click", async () => {
+                await copyToClipboard(passwordField.value);
+                copyPasswordBtn.textContent = "Copied";
+                setTimeout(() => (copyPasswordBtn.textContent = "Copy"), 900);
+            });
+
+            togglePwBtn.addEventListener("click", () => {
+                const hidden = passwordField.type === "password";
+                passwordField.type = hidden ? "text" : "password";
+                togglePwBtn.textContent = hidden ? "Hide" : "Show";
+            });
+        })();
+    </script>
+{% endblock %}
