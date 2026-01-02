@@ -1,5 +1,4 @@
 # Password Manager
-#### Video Demo: https://youtu.be/kBbWrb0cnFM
 #### Description:
 This project is a web based password manager built with Flask that allows users to register, authenticate, generate strong passwords, evaluate password strength, and store credentials securely in an encrypted vault. It is designed to be employed with modern web security concepts, including authentication, hashing, key derivation, session management, and user focused security feedback.
 
